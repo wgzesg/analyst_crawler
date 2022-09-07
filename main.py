@@ -31,16 +31,14 @@ def url_query(url, output_file):
     print("fail:", fail)
     print("success:", success)
 
-def local_query(folder, output_file):
-    article_list = []
+def local_query(input_file, output_file, folder=''):
+    with open(input_file, 'r') as f:
+        report_list = json.load(f)
+    print(len(report_list))
+
     success = fail = 0
     for filename in tqdm(os.listdir(folder)):
         file_path = os.path.join(folder,filename)
-        if not os.path.isfile(file_path):
-            print(file_path)
-            continue
-        # if 'singapore-airlines-uob-kay-hian-research' not in file_path:
-        #     continue
         with open(file_path, 'r') as file:
             points = parse_article_keypoints(content=file.read())
             if (len(points) == 0):
@@ -48,12 +46,18 @@ def local_query(folder, output_file):
             if (len(points) == 0):
                 print('failed:', filename)
                 fail += 1
-            else:
-                success += 1
+                continue
+            success += 1
+            for entry in report_list:
+                if filename in entry['article_link']:
+                    entry['arguments'] = points  
 
     print("fail:", fail)
     print("success:", success)
 
+    json_string = json.dumps(report_list)
+    with open(output_file, 'w') as f:
+        f.write(json_string)
 
 
 if __name__   == '__main__':
@@ -61,6 +65,6 @@ if __name__   == '__main__':
     parser = get_parser()
     args = parser.parse_args()
     if (args.folder):
-        local_query(args.folder, args.out)
+        local_query(args.input, args.out, args.folder)
     elif (args.url):
         url_query(args.url, args.out)

@@ -20,24 +20,10 @@ def parser_div_desc(_html):
         points.append(fil.text)
     return points
 
-# @reg_parser
-# def parser_div_article_part(_html):
-#     points = []
-#     sectores = _html.find_all('div', attrs={'id':re.compile("article-part-\d")})
-#     for sector in sectores:
-#         filtered = sector.find('ul')
-#         if (filtered != None):
-#             filtered = filtered.find_all('li')
-#         else:
-#             continue
-#         for pt in filtered:
-#             points.append(pt.text)
-#     return points
-
 @reg_parser
 def parser_sia_uob_kay_hian_research(_html):
     points = []
-    title = _html.find('div', class_='research')
+    title = _html.find('div', class_='research').find('h2')
     points.append(title.text)
 
     sectors = _html.find_all('div', attrs={'id':re.compile("article-part-\d")})
@@ -51,6 +37,20 @@ def parser_sia_uob_kay_hian_research(_html):
         if filtered != None:
             points.append(filtered.text)
 
+    return points
+
+@reg_parser
+def parser_div_article_part(_html):
+    points = []
+    sectores = _html.find_all('div', attrs={'id':re.compile("article-part-\d")})
+    for sector in sectores:
+        filtered = sector.find('ul')
+        if (filtered != None):
+            filtered = filtered.find_all('li')
+        else:
+            continue
+        for pt in filtered:
+            points.append(pt.text)
     return points
 
 def parse_article_keypoints(url=None, content=None):
