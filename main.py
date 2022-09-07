@@ -11,15 +11,23 @@ def query(url, output_file):
     content = (response.text)
     _html = BeautifulSoup(content, "html.parser")
     article_list = []
+    success = fail = 0
     for article in tqdm(_html.find_all('article', "analystreportitem")):
         obj = article_meta_info_parse(article)
         points = parse_article_keypoints(obj['article_link'])
+        if (len(points) == 0):
+            fail += 1
+        else:
+            success += 1
         obj['arguments'] = points
         article_list.append(obj)
 
     json_string = json.dumps(article_list)
     with open(output_file, 'w') as f:
         f.write(json_string)
+
+    print("fail:", fail)
+    print("success:", success)
 
 
 
