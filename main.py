@@ -6,7 +6,9 @@ from arguments import get_parser
 from test import parse_article_keypoints
 from tqdm import tqdm
 
-def query(url, output_file):
+import os
+
+def url_query(url, output_file):
     response = requests.get(url)
     content = (response.text)
     _html = BeautifulSoup(content, "html.parser")
@@ -29,11 +31,36 @@ def query(url, output_file):
     print("fail:", fail)
     print("success:", success)
 
+def local_query(folder, output_file):
+    article_list = []
+    success = fail = 0
+    for filename in tqdm(os.listdir(folder)):
+        file_path = os.path.join(folder,filename)
+        if not os.path.isfile(file_path):
+            print(file_path)
+            continue
+        # if 'singapore-airlines-uob-kay-hian-research' not in file_path:
+        #     continue
+        with open(file_path, 'r') as file:
+            points = parse_article_keypoints(content=file.read())
+            if (len(points) == 0):
+                print('length is 0 for', filename)
+            if (len(points) == 0):
+                print('failed:', filename)
+                fail += 1
+            else:
+                success += 1
+
+    print("fail:", fail)
+    print("success:", success)
+
 
 
 if __name__   == '__main__':
     # url = "https://sginvestors.io/sgx/stock/c6l-sia/analyst-report"
     parser = get_parser()
     args = parser.parse_args()
-    print(args)
-    query(args.url, args.out)
+    if (args.folder):
+        local_query(args.folder, args.out)
+    elif (args.url):
+        url_query(args.url, args.out)
