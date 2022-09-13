@@ -10,7 +10,7 @@ ALL_PARSERS = []
 def reg_parser(func):
     ALL_PARSERS.append(func)
 
-url = 'https://research.sginvestors.io/2022/05/singapore-airlines-uob-kay-hian-research-2022-05-20.html'
+url = 'https://research.sginvestors.io/2016/02/singapore-airlines-ocbc-investment-2016-02-10.html'
 
 @reg_parser
 def parser_div_desc(_html):
@@ -53,24 +53,54 @@ def parser_div_article_part(_html):
             points.append(pt.text)
     return points
 
+@reg_parser
+def parser_div_post_body_ocbc(_html):
+    points = []
+    titles = _html.find('div', attrs={'id':re.compile("post-body-\d")}).find_all('h3')
+    for sector in titles:
+        points.append(sector.text)
+
+    ulists = _html.find('div', attrs={'id':re.compile("post-body-\d")}).find_all('ul')
+    for l in ulists:
+        filtered = l.find_all('li')
+        for li in filtered:
+            points.append(li.text)
+    
+    return points
+
+@reg_parser
+def parser_div_post_body(_html):
+    points = []
+    sectores = _html.find('div', attrs={'id':re.compile("post-body-\d")}).find_all('div')
+    for sector in sectores:
+        # print(sector.text, '\n\n\n')
+        filtered = sector.find('ul')
+        if (filtered != None):
+            filtered = filtered.find_all('li')
+        else:
+            if (len(sector.text) > 35):
+                points.append(sector.text)
+            continue
+        for pt in filtered:
+            points.append(pt.text)
+    return points
+
 def parse_article_keypoints(url=None, content=None):
     points = []
     if content is None:
         response = requests.get(url)
         content = (response.text)
+        name = url.split('/')[-1]
+        with open('records/{}'.format(name), 'w') as f:
+            f.write(content)
     _html = BeautifulSoup(content, "html.parser")
     for ps in ALL_PARSERS:
         try:
             points = ps(_html)
             if len(points) == 0:
                 raise ParseError()
-            print('parsed with parser', ps)
             break
         except Exception as e:
-            # name = url.split('/')[-1]
-            # with open('{}'.format(name), 'w') as f:
-            #     f.write(content)
-            # print(e)
             continue
     return points
 

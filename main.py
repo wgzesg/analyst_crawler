@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import json
 from html_parser import article_meta_info_parse
 from arguments import get_parser
-from test import parse_article_keypoints
+from article_parser import parse_article_keypoints
 from tqdm import tqdm
 
 import os
@@ -42,9 +42,7 @@ def local_query(input_file, output_file, folder=''):
         with open(file_path, 'r') as file:
             points = parse_article_keypoints(content=file.read())
             if (len(points) == 0):
-                print('length is 0 for', filename)
-            if (len(points) == 0):
-                print('failed:', filename)
+                print('failed:', file_path)
                 fail += 1
                 continue
             success += 1
