@@ -5,8 +5,9 @@ from html_parser import article_meta_info_parse
 from arguments import get_parser
 from article_parser import parse_article_keypoints
 from tqdm import tqdm
-
+import csv
 import os
+import pandas as pd
 
 def url_query(url, output_file):
     response = requests.get(url)
@@ -58,11 +59,34 @@ def local_query(input_file, output_file, folder=''):
         f.write(json_string)
 
 
+def json_to_csv(json_path):
+    with open(json_path, 'r') as f:
+        report_list = json.load(f)
+    row_list = []
+    cols = ['title', 'broker', 'analyst', 'date', 'arguments']
+    row_list.append(cols)
+    for entry in report_list:
+        for point in entry['arguments']:
+            row = [entry['title'], entry['broker'], entry['analyst'], entry['date'], point]
+            row_list.append(row)
+    with open('arguments.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(row_list)
+
+    df = pd.read_csv('arguments.csv')
+    print("number of articles", df['title'].nunique())
+    print("dates range from", df['date'].min(), "to", df['date'].max())
+    print('number of arguments', df['arguments'].count())
+    print('average number of arguments per article', df['arguments'].count()/df['title'].nunique())
+
 if __name__   == '__main__':
     # url = "https://sginvestors.io/sgx/stock/c6l-sia/analyst-report"
     parser = get_parser()
     args = parser.parse_args()
     if (args.folder):
         local_query(args.input, args.out, args.folder)
+        json_to_csv(args.out)
     elif (args.url):
         url_query(args.url, args.out)
+        json_to_csv(args.out)
+
