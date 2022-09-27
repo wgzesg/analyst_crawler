@@ -3,4 +3,5 @@ log/
 *.html
 __pycache__/
 records/
+articles/
 

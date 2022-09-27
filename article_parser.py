@@ -85,14 +85,8 @@ def parser_div_post_body(_html):
             points.append(pt.text)
     return points
 
-def parse_article_keypoints(url=None, content=None):
+def parse_article_keypoints(content=None, folder=''):
     points = []
-    if content is None:
-        response = requests.get(url)
-        content = (response.text)
-        name = url.split('/')[-1]
-        with open('records/{}'.format(name), 'w') as f:
-            f.write(content)
     _html = BeautifulSoup(content, "html.parser")
     for ps in ALL_PARSERS:
         try:
