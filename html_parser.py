@@ -29,7 +29,6 @@ def get_all_tickers() -> List[tuple]:
         for stock in list.find_all('li'):
             name = stock.find('a').text
             ticker = stock.find('a').get('href').split('/')[-2]
-            print(ticker)
             tickers.append((name, ticker))
     return tickers
 
@@ -43,7 +42,6 @@ def query_one_company(ticker: str, name: str):
             list of ArticleMeta
     '''
     url = BASE_URL.replace('NAME', ticker)
-    print(url)
     response = requests.get(url)
     content = (response.text)
     _html = BeautifulSoup(content, "html.parser")
@@ -64,7 +62,7 @@ def parse_one_company_articles(article_list: List[ArticleMeta],
     return : 
         list of ArticleMeta with arguments filled
     '''
-    if len(article_list) < 10:
+    if len(article_list) < 1:
         return
     folder = article_list[0].ticker
     folder_path = os.path.join(root_data_folder, folder)
@@ -80,40 +78,43 @@ def parse_one_company_articles(article_list: List[ArticleMeta],
             fail += 1
             continue
         success += 1
-        article.arguments = points
+        article.textual_arguments = points
     print("Ticker:", article_list[0].ticker)
     print("fail:", fail)
     print("success:", success)
 
 
-'''
-Parse one single article. Store the html to local if not exist
-input :
-    one ArticleMeta
-return :
-    one ArticleMeta with arguments filled
-'''
-
-
 def parse_one_article(article: ArticleMeta):
+    '''
+    Parse one single article. Store the html to local if not exist
+    input :
+        one ArticleMeta
+    return :
+        one ArticleMeta with arguments filled
+    '''
     if not os.path.exists(article.article_path):
-        response = requests.get(article.article_url)
-        content = (response.text)
+        try:
+            response = requests.get(article.article_url)
+            content = (response.text)
+        except:
+            print("failed to get:", article.article_url)
+            return []
         with open(article.article_path, 'w') as f:
             f.write(content)
     with open(article.article_path, 'r') as file:
         points = parse_article_keypoints(content=file.read())
+        points = [p.strip() for p in points]
         return points
     return []
 
 
 def article_meta_info_parse(article: bs4.element.Tag, ticker: str,
                             company_name: str) -> ArticleMeta:
-    broker = article.find('a').find('div', "broker").text
-    report_date = article.find('a').find('div', 'report_date').text
-    analysts = article.find('a').find('div', 'analysts').text
-    title = article.find('a').find('h1', 'title').text
-    link = article.find('a').get('href')
+    broker = article.find('a').find('div', "broker").text.strip()
+    report_date = article.find('a').find('div', 'report_date').text.strip()
+    analysts = article.find('a').find('div', 'analysts').text.strip()
+    title = article.find('a').find('h1', 'title').text.strip()
+    link = article.find('a').get('href').strip()
     article_obj = ArticleMeta(
         title, report_date, broker, analysts, link, company_name, ticker,
         "articles/" + ticker + "/" + link.split('/')[-1] + ".html")

@@ -12,25 +12,17 @@ def json_to_df(json_path: str):
 
     for entry in report_list:
         for point in entry['textual_arguments']:
-            df = df.append(
-                {
-                    'title': entry['title'],
-                    'url': entry['article_url'],
-                    'company': entry['focal_company'],
-                    'ticker': entry['ticker'],
-                    'broker': entry['broker'],
-                    'analyst': entry['analyst'],
-                    'date': entry['date'],
-                    'argument': point
-                },
-                ignore_index=True)
+            df.loc[len(df.index)] = [
+                entry['title'], entry['article_url'], entry['focal_company'],
+                entry['ticker'], entry['broker'], entry['analyst'],
+                entry['date'], point
+            ]
     if df.empty:
         return df
-
     print("Company:", df['company'].unique()[0])
     print("number of articles", df['title'].nunique())
     print("dates range from", df['date'].min(), "to", df['date'].max())
-    print('number of arguments', df['arguments'].count())
+    print('number of arguments', df['argument'].count())
     print('average number of arguments per article',
-          df['arguments'].count() / df['title'].nunique())
+          df['argument'].count() / df['title'].nunique())
     return df

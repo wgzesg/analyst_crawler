@@ -2,11 +2,11 @@ import json
 from html_parser import get_all_tickers, query_one_company, parse_one_company_articles
 from arguments import get_parser
 import os
+import pandas as pd
 
 from utils import json_to_df
 
 if __name__ == '__main__':
-    # url = "https://sginvestors.io/sgx/stock/c6l-sia/analyst-report"
     parser = get_parser()
     args = parser.parse_args()
     ticker_list = get_all_tickers()
@@ -15,6 +15,11 @@ if __name__ == '__main__':
         os.mkdir('data')
         os.mkdir('data/parsed')
         os.mkdir('data/raw')
+
+    full_df = pd.DataFrame(columns=[
+        'title', 'url', "company", "ticker", 'broker', 'analyst', 'date',
+        'argument'
+    ])
 
     for company in ticker_list:
         name, ticker = company
@@ -30,4 +35,6 @@ if __name__ == '__main__':
                                  default=lambda o: o.toJson(),
                                  indent=4)
             f.write(content)
-        json_to_df('data/parsed/' + ticker + '_parsed.json')
+        df = json_to_df('data/parsed/' + ticker + '_parsed.json')
+        full_df = pd.concat([full_df, df], ignore_index=True)
+    full_df.to_csv('full.csv', index=False)
