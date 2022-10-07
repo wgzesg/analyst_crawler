@@ -11,6 +11,17 @@ from article_parser import parse_article_keypoints
 BASE_URL = 'https://sginvestors.io/sgx/stock/NAME/analyst-report'
 
 
+SECTOR_ARTICLES = [
+    'Singapore Stock Alpha Picks', 'Technology Stock Earnings Preview',
+    'Tech Manufacturers Stocks', 'Navigating Singapore', 'Singapore Market Focus  - 2020 Stock Picks',
+    'Singapore Technology Sector', 'Singapore Tech Stocks 2Q21 Earnings Preview',
+    'Tech Manufacturing Services Sector  - A Question Of Execution',
+    'ASEAN Technology Sector', 'Singapore Technology Stocks',
+    'SGX Listed Tech Sector Stocks', 'Technology Stocks  - Riding A New Wave Of 5G',
+    'Singapore Strategy', 'Market Outlook & Strategy ', 'Alpha Picks',
+    'Top Singapore Small Cap Companies ', 'Oil & Gas Sector  - '
+]
+
 def get_all_tickers() -> List[tuple]:
     '''
     Get a list of all companies in SGX
@@ -62,7 +73,7 @@ def parse_one_company_articles(article_list: List[ArticleMeta],
     return : 
         list of ArticleMeta with arguments filled
     '''
-    if len(article_list) < 1:
+    if len(article_list) < 10:
         return
     folder = article_list[0].ticker
     folder_path = os.path.join(root_data_folder, folder)
@@ -102,6 +113,8 @@ def parse_one_article(article: ArticleMeta):
         with open(article.article_path, 'w') as f:
             f.write(content)
     with open(article.article_path, 'r') as file:
+        if any(x in article.title for x in SECTOR_ARTICLES):
+            return []
         points = parse_article_keypoints(content=file.read())
         points = [p.strip() for p in points]
         return points
@@ -119,3 +132,10 @@ def article_meta_info_parse(article: bs4.element.Tag, ticker: str,
         title, report_date, broker, analysts, link, company_name, ticker,
         "articles/" + ticker + "/" + link.split('/')[-1] + ".html")
     return article_obj
+
+
+if __name__ == "__main__":
+    meta = ArticleMeta("title", "report_date", "broker", "analysts", "link","","","articles/no4-dyna-mac/ocbc-securities-2015-08-17-dyna-mac-holdings.html.html" )
+    points = parse_one_article(meta)
+    print(points)
+    

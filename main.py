@@ -3,8 +3,9 @@ from html_parser import get_all_tickers, query_one_company, parse_one_company_ar
 from arguments import get_parser
 import os
 import pandas as pd
+import pickle
 
-from utils import json_to_df
+from utils import json_to_df, pkl_to_df
 
 if __name__ == '__main__':
     parser = get_parser()
@@ -16,10 +17,7 @@ if __name__ == '__main__':
         os.mkdir('data/parsed')
         os.mkdir('data/raw')
 
-    full_df = pd.DataFrame(columns=[
-        'title', 'url', "company", "ticker", 'broker', 'analyst', 'date',
-        'argument'
-    ])
+    full_df = pd.DataFrame()
 
     for company in ticker_list:
         name, ticker = company
@@ -35,6 +33,8 @@ if __name__ == '__main__':
                                  default=lambda o: o.toJson(),
                                  indent=4)
             f.write(content)
-        df = json_to_df('data/parsed/' + ticker + '_parsed.json')
+        pickle.dump(article_list, open('data/parsed/' + ticker + '_parsed.pkl', 'wb'))
+        # df = json_to_df('data/parsed/' + ticker + '_parsed.json')
+        df = pkl_to_df('data/parsed/' + ticker + '_parsed.pkl')
         full_df = pd.concat([full_df, df], ignore_index=True)
     full_df.to_csv('full.csv', index=False)
